@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/Eggbertx/durationutil"
@@ -33,24 +33,6 @@ type GochanConfig struct {
 	BoardConfig
 	jsonLocation string `json:"-"`
 	testing      bool
-}
-
-func (gcfg *GochanConfig) setField(field string, value interface{}) {
-	structValue := reflect.ValueOf(gcfg).Elem()
-	structFieldValue := structValue.FieldByName(field)
-	if !structFieldValue.IsValid() {
-		return
-	}
-	if !structFieldValue.CanSet() {
-		return
-	}
-	structFieldType := structFieldValue.Type()
-	val := reflect.ValueOf(value)
-	if structFieldType != val.Type() {
-		return
-	}
-
-	structFieldValue.Set(val)
 }
 
 // ValidateValues checks to make sure that the configuration options are usable
@@ -138,6 +120,14 @@ func (gcfg *GochanConfig) Write() error {
 	return os.WriteFile(gcfg.jsonLocation, str, GC_FILE_MODE)
 }
 
+type ListenerConfig struct {
+	// Network can be either "tcp" or "unix"
+	Network string
+	// Address should be a valid address and port if Network is "tcp". If "unix" is used, Address should be a
+	// valid path to a socket file that Gochan will create.
+	Address string
+}
+
 /*
 SystemCriticalConfig contains configuration options that are extremely important, and fucking with them while
 the server is running could have site breaking consequences. It should only be changed by modifying the configuration
@@ -152,6 +142,7 @@ type SystemCriticalConfig struct {
 	LogDir         string
 	Plugins        []string
 	PluginSettings map[string]any
+	RPC            *ListenerConfig
 
 	SiteHeaderURL string
 	WebRoot       string
@@ -168,6 +159,10 @@ type SystemCriticalConfig struct {
 	RandomSeed string
 	Version    *GochanVersion `json:"-"`
 	TimeZone   int            `json:"-"`
+}
+
+func (sc *SystemCriticalConfig) HostAndPort() string {
+	return net.JoinHostPort(sc.ListenIP, strconv.Itoa(sc.Port))
 }
 
 // SiteConfig contains information about the site/community, e.g. the name of the site, the slogan (if set),
@@ -187,7 +182,6 @@ type SiteConfig struct {
 	RecentPostsWithNoFile bool
 	Verbosity             int
 	EnableAppeals         bool
-	MaxLogDays            int
 
 	MinifyHTML      bool
 	MinifyJS        bool

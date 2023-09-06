@@ -28,8 +28,9 @@ func main() {
 	defer func() {
 		fmt.Println("Cleaning up")
 		gcsql.Close()
-		gcutil.CloseLog()
 		gcplugin.ClosePlugins()
+		closeRPC()
+		gcutil.CloseLog()
 	}()
 
 	fmt.Printf("Starting gochan v%s\n", versionStr)
@@ -81,6 +82,9 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	posting.InitPosting()
 	go initServer()
+	if systemCritical.RPC != nil {
+		go initRPC()
+	}
 	<-sc
 }
 

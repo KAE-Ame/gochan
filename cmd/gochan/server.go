@@ -20,17 +20,21 @@ import (
 	"github.com/gochan-org/gochan/pkg/server/serverutil"
 )
 
+var (
+	serverListener net.Listener
+)
+
 func initServer() {
 	systemCritical := config.GetSystemCriticalConfig()
 	siteConfig := config.GetSiteConfig()
-
-	listener, err := net.Listen("tcp", systemCritical.ListenIP+":"+strconv.Itoa(systemCritical.Port))
+	var err error
+	net.JoinHostPort(systemCritical.ListenIP, strconv.Itoa(systemCritical.Port))
+	serverListener, err = net.Listen("tcp", systemCritical.HostAndPort())
 	if err != nil {
 		if !systemCritical.DebugMode {
 			fmt.Printf("Failed listening on %s:%d: %s", systemCritical.ListenIP, systemCritical.Port, err.Error())
 		}
-		gcutil.Logger().Fatal().Caller().
-			Err(err).
+		gcutil.LogFatal().Err(err).Caller().
 			Str("ListenIP", systemCritical.ListenIP).
 			Int("Port", systemCritical.Port).Send()
 	}
@@ -41,8 +45,7 @@ func initServer() {
 		if !systemCritical.DebugMode {
 			fmt.Println("Got error when initializing Akismet spam protection, it will be disabled:", err)
 		}
-		gcutil.Logger().Fatal().Caller().
-			Err(err).
+		gcutil.LogFatal().Err(err).Caller().
 			Msg("Akismet spam protection will be disabled")
 	}
 	router := server.GetRouter()
@@ -62,18 +65,16 @@ func initServer() {
 	// like /plugin
 
 	if systemCritical.UseFastCGI {
-		err = fcgi.Serve(listener, router)
+		err = fcgi.Serve(serverListener, router)
 	} else {
-		err = http.Serve(listener, router)
+		err = http.Serve(serverListener, router)
 	}
 
 	if err != nil {
 		if !systemCritical.DebugMode {
 			fmt.Println("Error initializing server:", err.Error())
 		}
-		gcutil.Logger().Fatal().
-			Err(err).
-			Msg("Error initializing server")
+		gcutil.LogFatal().Err(err).Caller().Msg("Error initializing server")
 	}
 }
 

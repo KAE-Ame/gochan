@@ -9,10 +9,13 @@
 	"DocumentRoot": "html",
 	"TemplateDir": "templates",
 	"LogDir": "log",
-
-	"DBtype": "mysql/postgres",
+	"RPC": {
+		"Network": "unix",
+		"Address": "/run/gochan/gochanrpc.sock"
+	},
+	"DBtype": "mysql/postgres/sqlite3",
 	"DBhost": "127.0.0.1:3306",
-	"_comment": "gochan can use either a URL or a UNIX socket for MySQL connections",
+	"_comment": "gochan can use either an address (domain/IP) and port or a UNIX socket for MySQL connections",
 	"DBhost_alt": "unix(/var/run/mysqld/mysqld.sock)",
 	"DBname": "gochan",
 	"DBusername": "gochan",
@@ -105,7 +108,6 @@
 	"RecentPostsWithNoFile": false,
 	"Verbosity": 0,
 	"EnableAppeals": true,
-	"MaxLogDays": 14,
 	"_comment": "Set RandomSeed to a (preferrably large) string of letters and numbers",
 	"RandomSeed": ""
 }

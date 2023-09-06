@@ -110,7 +110,6 @@ const (
 		"RecentPostsWithNoFile": false,
 		"Verbosity": 0,
 		"EnableAppeals": true,
-		"MaxLogDays": 14,
 		"_comment": "Set RandomSeed to a (preferrably large) string of letters and numbers",
 		"RandomSeed": ""
 	}`
