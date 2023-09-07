@@ -13,7 +13,7 @@
 	- Creates and returns a zerolog [Event](https://pkg.go.dev/github.com/rs/zerolog) object with a warning level.
 
 - **register_upload_handler(ext string, function(upload, post, board, filePath, thumbPath, catalogThumbPath, infoEv, accessEv, errEv))**
-	- Registers a function to be called for handling uploaded files with the given extension. See [pdf_thumbnail.lua](./sample-plugins/pdf_thumbnail.lua) for a usage example.
+	- Registers a function to be called for handling uploaded files with the given extension. See [pdf_thumbnail.lua](./examples//plugins/pdf_thumbnail.lua) for a usage example.
 
 - **get_thumbnail_ext(upload_ext string)**
 	- Returns the configured (or built-in) thumbnail file extension to be used for the given upload extension
@@ -43,7 +43,7 @@
 	- Triggers the event registered to `event_name` and passes `data` (if set) to the event handler.
 
 - **register_manage_page(action string, title string, perms int, wants_json int, handler func(writer, request, staff, wants_json, info_ev, err_ev))**
-	- Registers the manage page accessible at /manage/`action` to be handled by `handler`. See [manage.RegisterManagePage](https://pkg.go.dev/github.com/gochan-org/gochan/pkg/manage#RegisterManagePage) for info on how `handler` should be used, or [registermgmtpage.lua](./sample-plugins/registermgmtpage.lua) for an example
+	- Registers the manage page accessible at /manage/`action` to be handled by `handler`. See [manage.RegisterManagePage](https://pkg.go.dev/github.com/gochan-org/gochan/pkg/manage#RegisterManagePage) for info on how `handler` should be used, or [registermgmtpage.lua](./examples/plugins/registermgmtpage.lua) for an example
 
 - **load_template(files...)**
 	- Calls [gctemplates.LoadTemplate](https://pkg.go.dev/github.com/gochan-org/gochan/pkg/gctemplates#LoadTemplate) using the given `files` and returns a [Template](https://pkg.go.dev/html/template#Template) and an error object (or nil if there were no errors).
@@ -52,7 +52,7 @@
 	- Calls [gctemplates.ParseTemplate](https://pkg.go.dev/github.com/gochan-org/gochan/pkg/gctemplates#ParseTemplate) with the given template name and Go template data, and returns a [Template](https://pkg.go.dev/html/template#Template) and an error object (or nil if there were no errors).
 
 - **minify_template(template, data_table, writer, media_type)**
-	- Calls [serverutil.MinifyTemplate](https://pkg.go.dev/github.com/gochan-org/gochan/pkg/server/serverutil#MinifyTemplate) with the given `template` object, `data_table` (as variables passed to the template), `writer`, and `media_type`. See [registermgmtpage.lua](./sample-plugins/registermgmtpage.lua) for an example
+	- Calls [serverutil.MinifyTemplate](https://pkg.go.dev/github.com/gochan-org/gochan/pkg/server/serverutil#MinifyTemplate) with the given `template` object, `data_table` (as variables passed to the template), `writer`, and `media_type`. See [registermgmtpage.lua](./examples/plugins/registermgmtpage.lua) for an example
 
 
 # Events
