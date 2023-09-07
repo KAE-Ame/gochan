@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -14,6 +15,7 @@ import (
 
 var (
 	rpcListener net.Listener
+	rpcServer   *http.Server
 	hello       HelloWorld
 )
 
@@ -61,7 +63,13 @@ func initRPC() {
 				Str("address", rpcCfg.Address).
 				Send()
 		}
-		if err = http.Serve(rpcListener, nil); err != nil {
+		rpcServer = &http.Server{ErrorLog: log.New(gcutil.Logger(), "", 0)}
+		if rpcCfg.UseTLS {
+			err = rpcServer.ServeTLS(rpcListener, rpcCfg.CertFile, rpcCfg.KeyFile)
+		} else {
+			err = rpcServer.Serve(rpcListener)
+		}
+		if err != nil {
 			fatalEv.Err(err).Caller().Send()
 		}
 	}
