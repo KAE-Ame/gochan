@@ -125,7 +125,10 @@ type ListenerConfig struct {
 	Network string
 	// Address should be a valid address and port if Network is "tcp". If "unix" is used, Address should be a
 	// valid path to a socket file that Gochan will create.
-	Address string
+	Address  string
+	UseTLS   bool
+	KeyFile  string
+	CertFile string
 }
 
 /*
