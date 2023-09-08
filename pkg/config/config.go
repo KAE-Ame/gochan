@@ -121,13 +121,13 @@ func (gcfg *GochanConfig) Write() error {
 }
 
 type ListenerConfig struct {
-	// Network can be either "tcp" or "unix"
-	Network string
-	// Address should be a valid address and port if Network is "tcp". If "unix" is used, Address should be a
-	// valid path to a socket file that Gochan will create.
-	Address  string
-	UseTLS   bool
-	KeyFile  string
+	// Network can be either "tcp" or a path where the socket will be created
+	Socket string
+	// Address should be a valid address and port
+	UseTLS bool
+	// KeyFile is required if UseTLS is true
+	KeyFile string
+	// CertFile is required if UseTLS is true
 	CertFile string
 }
 

@@ -10,8 +10,11 @@
 	"TemplateDir": "templates",
 	"LogDir": "log",
 	"RPC": {
-		"Network": "unix",
-		"Address": "/run/gochan/gochanrpc.sock"
+		"Socket": "/run/gochan/gochanrpc.sock",
+		"Socket_alt": "tcp",
+		"UseTLS": true,
+		"KeyFile": "mykey.key",
+		"CertFile": "mycert.crt"
 	},
 	"DBtype": "mysql/postgres/sqlite3",
 	"DBhost": "127.0.0.1:3306",

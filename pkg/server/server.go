@@ -1,7 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
+	"net/rpc"
 	"os"
 
 	"github.com/gochan-org/gochan/pkg/config"
@@ -69,6 +71,16 @@ func ServeNotFound(writer http.ResponseWriter, request *http.Request) {
 func InitRouter() {
 	router = bunrouter.New(
 		bunrouter.WithNotFoundHandler(bunrouter.HTTPHandlerFunc(serveFile)),
+		bunrouter.WithMethodNotAllowedHandler(func(w http.ResponseWriter, req bunrouter.Request) error {
+			if req.Method == "CONNECT" && req.URL.Path == rpc.DefaultRPCPath {
+				rpc.DefaultServer.ServeHTTP(w, req.Request)
+				return nil
+			}
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return fmt.Errorf("%d %s",
+				http.StatusMethodNotAllowed,
+				http.StatusText(http.StatusMethodNotAllowed))
+		}),
 	)
 }
 

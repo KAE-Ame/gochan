@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/fcgi"
+	"net/rpc"
 	"path"
 	"strconv"
 
@@ -22,6 +23,8 @@ import (
 
 var (
 	serverListener net.Listener
+	serverReady    = make(chan bool)
+	router         *bunrouter.Router
 )
 
 func initServer() {
@@ -30,6 +33,7 @@ func initServer() {
 	var err error
 	net.JoinHostPort(systemCritical.ListenIP, strconv.Itoa(systemCritical.Port))
 	serverListener, err = net.Listen("tcp", systemCritical.HostAndPort())
+	serverReady <- true
 	if err != nil {
 		if !systemCritical.DebugMode {
 			fmt.Printf("Failed listening on %s:%d: %s", systemCritical.ListenIP, systemCritical.Port, err.Error())
@@ -48,7 +52,7 @@ func initServer() {
 		gcutil.LogFatal().Err(err).Caller().
 			Msg("Akismet spam protection will be disabled")
 	}
-	router := server.GetRouter()
+	router = server.GetRouter()
 	router.GET(config.WebPath("/captcha"), bunrouter.HTTPHandlerFunc(posting.ServeCaptcha))
 	router.POST(config.WebPath("/captcha"), bunrouter.HTTPHandlerFunc(posting.ServeCaptcha))
 	router.GET(config.WebPath("/manage"), bunrouter.HTTPHandlerFunc(manage.CallManageFunction))
@@ -61,6 +65,14 @@ func initServer() {
 	router.GET(config.WebPath("/util"), bunrouter.HTTPHandlerFunc(utilHandler))
 	router.POST(config.WebPath("/util"), bunrouter.HTTPHandlerFunc(utilHandler))
 	router.GET(config.WebPath("/util/banner"), bunrouter.HTTPHandlerFunc(randomBanner))
+	http.HandleFunc(rpc.DefaultRPCPath, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("RPC requested")
+	})
+	if systemCritical.RPC != nil && systemCritical.RPC.Socket == "tcp" {
+		// a bit janky, but bunrouter panics if we try to handle CONNECT method, which net/rpc uses
+		router.Compat().Handle("POST", rpc.DefaultRPCPath, rpc.DefaultServer.ServeHTTP)
+	}
+
 	// Eventually plugins might be able to register new namespaces or they might be restricted to something
 	// like /plugin
 
