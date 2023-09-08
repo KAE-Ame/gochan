@@ -3,55 +3,29 @@ package main
 import (
 	"crypto/tls"
 	"flag"
-	"fmt"
 	"log"
-	"net"
-	"net/rpc"
+
+	"github.com/gochan-org/gochan/pkg/gcutil"
 )
 
 func main() {
-	var network string
-	var address string
+	var socket string
 	var useTLS bool
-	flag.StringVar(&network, "network", "tcp", "unix or tcp")
-	flag.StringVar(&address, "address", "192.168.56.3:80", "if network is tcp, this should be <ip>:<port>, otherwise /path/to/socket")
+	flag.StringVar(&socket, "socket", "/var/run/gochan/rpc.sock", "Path to the RPC socket")
 	flag.BoolVar(&useTLS, "tls", false, "whether or not to use TLS for better security")
 	flag.Parse()
 
-	var conn net.Conn
-	var err error
+	var tlsConfig *tls.Config
 	if useTLS {
-		conn, err = tls.Dial(network, address, &tls.Config{
+		tlsConfig = &tls.Config{
 			InsecureSkipVerify: true,
-		})
-	} else {
-		conn, err = net.Dial(network, address)
-	}
-	log.Println("Dialed")
-	if err != nil {
-		panic("Error opening connection: " + err.Error())
-	}
-	var client *rpc.Client
-
-	defer func() {
-		if client != nil {
-			if err = client.Close(); err != nil {
-				fmt.Println("Error closing RPC client:", client.Close())
-			}
 		}
-	}()
+	}
 
-	// io.WriteString(conn, "CONNECT "+rpc.DefaultRPCPath+" HTTP/1.0\n\n")
-	// log.Println("Wrote CONNECT")
-	// resp, err := http.ReadResponse(bufio.NewReader(conn), &http.Request{Method: "CONNECT"})
-	// log.Println(err)
-	// if err != nil {
-	// 	panic("Error reading response: " + err.Error())
-	// } else if resp.Status != "200 Connected to Go RPC" {
-	// 	panic("unexpected HTTP response: " + resp.Status)
-	// } else {
-	client = rpc.NewClient(conn)
-	// }
+	client, err := gcutil.DialRPC("unix", socket, tlsConfig)
+	if err != nil {
+		log.Fatalln("Error creating RPC client:", err)
+	}
 
 	log.Println("Calling hello.HelloWorld")
 	var args int
@@ -59,5 +33,10 @@ func main() {
 	if err = client.Call("hello.HelloWorld", &args, &result); err != nil {
 		log.Fatalln("Error calling hello.HelloWorld:", err.Error())
 	}
-	log.Println(args, result)
+	log.Println("Calling hello.Sum")
+	arr := []int{1, 2, 3, 4}
+	if err = client.Call("hello.Sum", arr, &result); err != nil {
+		log.Fatalln("Erro calling hello.Sum:", err.Error())
+	}
+	log.Println("Sum of elements of", arr, "=", result)
 }

@@ -121,7 +121,9 @@ func (gcfg *GochanConfig) Write() error {
 }
 
 type ListenerConfig struct {
-	// Network can be either "tcp" or a path where the socket will be created
+	Network string
+	Address string
+
 	Socket string
 	// Address should be a valid address and port
 	UseTLS bool

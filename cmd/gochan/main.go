@@ -29,6 +29,7 @@ func main() {
 		fmt.Println("Cleaning up")
 		gcsql.Close()
 		gcplugin.ClosePlugins()
+		closeRPC()
 		gcutil.CloseLog()
 	}()
 

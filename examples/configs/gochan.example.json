@@ -11,7 +11,6 @@
 	"LogDir": "log",
 	"RPC": {
 		"Socket": "/run/gochan/gochanrpc.sock",
-		"Socket_alt": "tcp",
 		"UseTLS": true,
 		"KeyFile": "mykey.key",
 		"CertFile": "mycert.crt"
