@@ -113,13 +113,22 @@ func AttachUploadFromRequest(request *http.Request, writer http.ResponseWriter, 
 		errEv.Str("catalogThumbPath", catalogThumbPath)
 	}
 
+	_, err, recovered := events.TriggerEvent("incoming-upload", upload)
+	if recovered {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return nil, errors.New("unable to process upload (recovered from a panic in event handler)")
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	if err = os.WriteFile(filePath, data, config.GC_FILE_MODE); err != nil {
 		errEv.Err(err).Caller().Send()
 		return nil, fmt.Errorf("couldn't write file %q", upload.OriginalFilename)
 	}
 
 	// event triggered after the file is successfully written but be
-	_, err, recovered := events.TriggerEvent("upload-saved", filePath)
+	_, err, recovered = events.TriggerEvent("upload-saved", filePath)
 	if recovered {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return nil, errors.New("unable to save upload (recovered from a panic in event handler)")
