@@ -16,6 +16,11 @@ var (
 	InvalidArgumentErrorStr = "invalid argument(s) passed to event %q"
 )
 
+type EventsInterface interface {
+	Register([]string, func(string, ...interface{}))
+	Trigger(string, ...interface{}) (bool, error, bool)
+}
+
 type EventHandler func(string, ...interface{}) error
 
 // RegisterEvent registers a new event handler to be called when any of the elements of triggers are passed

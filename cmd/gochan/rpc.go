@@ -2,86 +2,68 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net"
-	"net/http"
-	"net/rpc"
 	"os"
-	"path"
+	"os/exec"
 
-	"github.com/gochan-org/gochan/pkg/config"
+	"github.com/gochan-org/gochan/pkg/events"
 	"github.com/gochan-org/gochan/pkg/gcutil"
+	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-plugin"
 )
 
 var (
-	rpcListener net.Listener
-	rpcServer   *http.Server
-	hello       HelloWorld
+	pluginLog    hclog.Logger
+	pluginClient *plugin.Client
 )
 
-type HelloWorld int
-
-func (h *HelloWorld) HelloWorld(args *int, reply *int) error {
-	fmt.Println("Hello, RPC!")
-	return nil
-}
-
-func (h *HelloWorld) Sum(args []int, result *int) error {
-	*result = 0
-	for _, i := range args {
-		*result += i
-	}
-	return nil
-}
-
 func initRPC() {
-	systemCritical := config.GetSystemCriticalConfig()
-	rpcCfg := systemCritical.RPC
 	fatalEv := gcutil.LogFatal()
 	defer fatalEv.Discard()
 
-	var err error
-	if err = rpc.RegisterName("hello", &hello); err != nil {
-		fmt.Println("Error registering hello receiver:", err)
-		fatalEv.Err(err).Caller().Str("rpcName", "hello").Msg("Unable to register receiver")
+	logf, err := os.OpenFile("/vagrant/rpc.log", os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		panic(err)
 	}
 
-	// using a socket file, make the directory if it doesn't already exist
-	socketDir := path.Dir(rpcCfg.Socket)
-	if err = os.MkdirAll(socketDir, config.GC_DIR_MODE); err != nil && !os.IsNotExist(err) {
-		fmt.Printf("Unable to create socket directory %s: %s\n", socketDir, err.Error())
-		fatalEv.Err(err).Caller().Str("socketDir", socketDir).Send()
+	pluginLog = hclog.New(&hclog.LoggerOptions{
+		Name:       "plugin",
+		JSONFormat: true,
+		Output:     logf,
+	})
+	hclog.SetDefault(pluginLog)
+	pluginClient = plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig: plugin.HandshakeConfig{
+			ProtocolVersion:  1,
+			MagicCookieKey:   "gochan-rpc",
+			MagicCookieValue: "gochan-rpc",
+		},
+		Plugins: map[string]plugin.Plugin{
+			"eventplug": &events.EventPlugin{},
+		},
+		Cmd: exec.Command("/vagrant/gochan-events-rpc"),
+	})
+	defer pluginClient.Kill()
+
+	rpcClient, err := pluginClient.Client()
+	if err != nil {
+		fmt.Println("Unable to initialize plugin client:", err.Error())
+		fatalEv.Err(err).Caller().Msg("Unable to initialize plugin client")
 	}
 
-	rpcListener, err = net.Listen(rpcCfg.Network, rpcCfg.Address)
+	raw, err := rpcClient.Dispense("eventplug")
 	if err != nil {
-		if !systemCritical.DebugMode {
-			fmt.Printf("Failed listening to socket %q: %s\n",
-				rpcCfg.Socket, err.Error())
-		}
-		fatalEv.Err(err).Caller().
-			Str("socket", rpcCfg.Socket).
-			Send()
+		fmt.Println("Unable to dispense eventplug:", err)
+		fatalEv.Err(err).Caller().Str("plugin", "eventplug").Send()
 	}
-	rpcServer = &http.Server{
-		Addr:     rpcCfg.Address,
-		ErrorLog: log.New(gcutil.Logger(), "", 0),
-	}
-	http.Handle(rpc.DefaultRPCPath, rpc.DefaultServer)
-	if rpcCfg.UseTLS {
-		err = rpcServer.ServeTLS(rpcListener, rpcCfg.CertFile, rpcCfg.KeyFile)
-	} else {
-		err = rpcServer.Serve(rpcListener)
-	}
-	if err != nil {
-		fatalEv.Err(err).Caller().Send()
-	}
+	ev := raw.(*events.EventRPC)
+	fmt.Println("EventsRPC:", ev)
 }
 
 func closeRPC() {
-	if rpcServer != nil {
-		if err := rpcServer.Close(); err != nil {
-			gcutil.LogError(err).Msg("Failed closing RPC server")
-		}
-	}
+
+	// if rpcServer != nil {
+	// 	if err := rpcServer.Close(); err != nil {
+	// 		gcutil.LogError(err).Msg("Failed closing RPC server")
+	// 	}
+	// }
 }
