@@ -10,10 +10,13 @@ import (
 )
 
 var (
-	logFile      *os.File
-	accessFile   *os.File
+	logFile    *os.File
+	accessFile *os.File
+	rpcLogFile *os.File
+
 	logger       zerolog.Logger
 	accessLogger zerolog.Logger
+	rpcLogger    zerolog.Logger
 )
 
 type logHook struct{}
@@ -57,7 +60,7 @@ func LogDiscard(events ...*zerolog.Event) {
 	}
 }
 
-func InitLog(logPath string, debug bool) (err error) {
+func initLog(logPath string, debug bool) (err error) {
 	if logFile != nil {
 		// log file already initialized, skip
 		return nil
@@ -76,7 +79,7 @@ func InitLog(logPath string, debug bool) (err error) {
 	return nil
 }
 
-func InitAccessLog(logPath string) (err error) {
+func initAccessLog(logPath string) (err error) {
 	if accessFile != nil {
 		// access log already initialized, skip
 		return nil
@@ -89,18 +92,38 @@ func InitAccessLog(logPath string) (err error) {
 	return nil
 }
 
+func initRPCLog(logPath string) (err error) {
+	if rpcLogFile != nil {
+		// RPC log already initialized, skip
+		return nil
+	}
+	rpcLogFile, err = os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0640) // skipcq: GSC-G302
+	if err != nil {
+		return err
+	}
+	rpcLogger = zerolog.New(rpcLogFile).Hook(&logHook{})
+	return nil
+}
+
 func InitLogs(logDir string, debug bool, uid int, gid int) (err error) {
-	if err = InitLog(path.Join(logDir, "gochan.log"), debug); err != nil {
+	if err = initLog(path.Join(logDir, "gochan.log"), debug); err != nil {
 		return err
 	}
 	if err = logFile.Chown(uid, gid); err != nil {
 		return err
 	}
 
-	if err = InitAccessLog(path.Join(logDir, "gochan_access.log")); err != nil {
+	if err = initAccessLog(path.Join(logDir, "gochan_access.log")); err != nil {
 		return err
 	}
 	if err = accessFile.Chown(uid, gid); err != nil {
+		return err
+	}
+
+	if err = initRPCLog(path.Join(logDir, "gochan_rpc.log")); err != nil {
+		return err
+	}
+	if err = rpcLogFile.Chown(uid, gid); err != nil {
 		return err
 	}
 	return nil
@@ -108,6 +131,10 @@ func InitLogs(logDir string, debug bool, uid int, gid int) (err error) {
 
 func Logger() *zerolog.Logger {
 	return &logger
+}
+
+func RPCLogger() *zerolog.Logger {
+	return &rpcLogger
 }
 
 func LogInfo() *zerolog.Event {
@@ -126,6 +153,10 @@ func LogAccess(request *http.Request) *zerolog.Event {
 			Str("IP", GetRealIP(request))
 	}
 	return ev
+}
+
+func LogRPC(level zerolog.Level) *zerolog.Event {
+	return rpcLogger.WithLevel(level)
 }
 
 func LogError(err error) *zerolog.Event {

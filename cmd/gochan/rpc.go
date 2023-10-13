@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 
 	"github.com/gochan-org/gochan/pkg/events"
+	"github.com/gochan-org/gochan/pkg/gcplugin"
 	"github.com/gochan-org/gochan/pkg/gcutil"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
@@ -20,17 +20,8 @@ func initRPC() {
 	fatalEv := gcutil.LogFatal()
 	defer fatalEv.Discard()
 
-	logf, err := os.OpenFile("/vagrant/rpc.log", os.O_APPEND|os.O_CREATE, 0644)
-	if err != nil {
-		panic(err)
-	}
+	gcplugin.SetupRPCPluginLogger("rpc")
 
-	pluginLog = hclog.New(&hclog.LoggerOptions{
-		Name:       "plugin",
-		JSONFormat: true,
-		Output:     logf,
-	})
-	hclog.SetDefault(pluginLog)
 	pluginClient = plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: plugin.HandshakeConfig{
 			ProtocolVersion:  1,

@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/gochan-org/gochan/pkg/events"
-	"github.com/hashicorp/go-hclog"
+	"github.com/gochan-org/gochan/pkg/gcplugin"
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -27,20 +26,11 @@ func main() {
 			Impl: EventsPlugin{},
 		},
 	}
-	fi, err := os.OpenFile("rpc.log", os.O_APPEND|os.O_CREATE, 0644)
-	if err != nil {
-		panic(err)
-	}
+	gcplugin.SetupRPCPluginLogger("rpc-events")
+
 	plugin.Serve(&plugin.ServeConfig{
-		HandshakeConfig: plugin.HandshakeConfig{
-			ProtocolVersion:  1,
-			MagicCookieKey:   "gochan-rpc",
-			MagicCookieValue: "gochan-rpc",
-		},
-		Logger: hclog.New(&hclog.LoggerOptions{
-			Output:     fi,
-			JSONFormat: true,
-		}),
-		Plugins: pluginMap,
+		HandshakeConfig: gcplugin.RPCHandshakeConfig,
+		Logger:          gcplugin.PluginLogger(),
+		Plugins:         pluginMap,
 	})
 }
