@@ -1,11 +1,14 @@
-event_register({"incoming-upload"}, function(tr, upload)
-	rows, err = db_query("SELECT COUNT(*) FROM DBPREFIXfiles WHERE original_filename = ?", {upload.OriginalFilename})
+local events = require("events")
+local gcsql = require("gcsql")
+
+events.register_event({"incoming-upload"}, function(tr, upload)
+	rows, err = gcsql.query_rows("SELECT COUNT(*) FROM DBPREFIXfiles WHERE original_filename = ?", {upload.OriginalFilename})
 	if(err ~= nil) then
 		return err:Error()
 	end
 	while rows:Next() do
 		rows_table = {}
-		err = db_scan_rows(rows, rows_table)
+		err = gcsql.scan_rows(rows, rows_table)
 		if(err ~= nil) then
 			rows:Close()
 			return err:Error()

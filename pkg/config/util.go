@@ -87,6 +87,7 @@ func InitConfig(versionStr string) {
 		cfg.SiteSlogan = "Gochan testing"
 		cfg.Verbosity = 1
 		cfg.Captcha.OnlyNeededForThreads = true
+		cfg.DefaultStyle = "test.css"
 		cfg.Cooldowns = BoardCooldowns{0, 0, 0}
 		cfg.BanColors = []string{
 			"admin:#0000A0",
