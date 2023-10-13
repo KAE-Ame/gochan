@@ -18,9 +18,9 @@ require (
 	github.com/uptrace/bunrouter v1.0.20
 	github.com/vadv/gopher-lua-libs v0.4.1
 	github.com/yuin/gopher-lua v1.1.0
-	golang.org/x/crypto v0.9.0
+	golang.org/x/crypto v0.14.0
 	golang.org/x/image v0.7.0
-	golang.org/x/net v0.10.0
+	golang.org/x/net v0.17.0
 	layeh.com/gopher-luar v1.0.10
 )
 
@@ -37,10 +37,7 @@ require (
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
 	github.com/tdewolff/test v1.0.9 // indirect
 	gitlab.com/nyarla/go-crypt v0.0.0-20160106005555-d9a5dc2b789b // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
-	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
-	google.golang.org/grpc v1.38.0 // indirect
-	google.golang.org/protobuf v1.28.2-0.20230222093303-bc1253ad3743 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
