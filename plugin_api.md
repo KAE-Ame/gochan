@@ -47,11 +47,11 @@ The following are modules that can be loaded via `require("modulename")`. See [.
 	- Registers the manage page accessible at /manage/`action` to be handled by `handler`. See [manage.RegisterManagePage](https://pkg.go.dev/github.com/gochan-org/gochan/pkg/manage#RegisterManagePage) for info on how `handler` should be used, or [registermgmtpage.lua](./examples/plugins/registermgmtpage.lua) for an example
 
 ## uploads
-- **register_handler(ext string, function(upload, post, board, filePath, thumbPath, catalogThumbPath, infoEv, accessEv, errEv))**
+- **uploads.register_handler(ext string, function(upload, post, board, filePath, thumbPath, catalogThumbPath, infoEv, accessEv, errEv))**
 	- Registers a function to be called for handling uploaded files with the given extension. See [pdf_thumbnail.lua](./examples//plugins/pdf_thumbnail.lua) for a usage example.
-- **get_thumbnail_ext(upload_ext string)**
+- **uploads.get_thumbnail_ext(upload_ext string)**
 	- Returns the configured (or built-in) thumbnail file extension to be used for the given upload extension
-- **set_thumbnail_ext(upload_ext string, thumbnail_ext string)**
+- **uploads.set_thumbnail_ext(upload_ext string, thumbnail_ext string)**
 	- Sets the thumbnail extension to be used for the given upload extension
 
 
