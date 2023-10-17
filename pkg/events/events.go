@@ -1,6 +1,7 @@
 package events
 
 import (
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"os"
@@ -16,8 +17,8 @@ var (
 	InvalidArgumentErrorStr = "invalid argument(s) passed to event %q"
 )
 
-type Event interface {
-	Register([]string, func(string, ...interface{}))
+type RPCEvent interface {
+	Register([]string)
 	Trigger(string, ...interface{}) (bool, error, bool)
 }
 
@@ -65,4 +66,5 @@ func TriggerEvent(trigger string, data ...interface{}) (handled bool, err error,
 func init() {
 	registeredEvents = map[string][]EventHandler{}
 	testingMode = strings.HasSuffix(os.Args[0], ".test")
+	gob.Register(EventData{})
 }

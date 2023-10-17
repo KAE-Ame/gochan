@@ -54,6 +54,7 @@ func initRPC() {
 			fatalEv.Err(err).Caller().Str("plugin", "eventplug").Send()
 		}
 		ev := raw.(*events.EventClient)
-		ev.Trigger("rpc-events", "plugin event triggered from gochan")
+		ev.Register([]string{"rpc-events"})
+		ev.Trigger("rpc-events", "plugin event triggered from gochan", 1, 2, 3)
 	}
 }
