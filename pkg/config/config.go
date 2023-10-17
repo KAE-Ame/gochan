@@ -120,16 +120,13 @@ func (gcfg *GochanConfig) Write() error {
 	return os.WriteFile(gcfg.jsonLocation, str, GC_FILE_MODE)
 }
 
-type ListenerConfig struct {
-	Network string
-	Address string
+type RPCConfig struct {
+	RPCPlugins []string
 
-	Socket string
-	// Address should be a valid address and port
-	UseTLS bool
-	// KeyFile is required if UseTLS is true
+	AutoMTLS bool
+	// KeyFile is required if AutoMTLS is true
 	KeyFile string
-	// CertFile is required if UseTLS is true
+	// CertFile is required if AutoMTLS is true
 	CertFile string
 }
 
@@ -147,7 +144,7 @@ type SystemCriticalConfig struct {
 	LogDir         string
 	Plugins        []string
 	PluginSettings map[string]any
-	RPC            *ListenerConfig
+	RPC            *RPCConfig
 
 	SiteHeaderURL string
 	WebRoot       string

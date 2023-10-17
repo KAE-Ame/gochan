@@ -10,6 +10,7 @@ import (
 
 	"github.com/gochan-org/gochan/pkg/config"
 	"github.com/gochan-org/gochan/pkg/events"
+	"github.com/hashicorp/go-plugin"
 
 	"github.com/gochan-org/gochan/pkg/gcutil"
 
@@ -29,7 +30,7 @@ func main() {
 		fmt.Println("Cleaning up")
 		gcsql.Close()
 		gcplugin.ClosePlugins()
-		closeRPC()
+		plugin.CleanupClients()
 		gcutil.CloseLog()
 	}()
 

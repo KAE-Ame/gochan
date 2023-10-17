@@ -7,18 +7,32 @@ import (
 	"github.com/hashicorp/go-plugin"
 )
 
-type EventRPC struct {
+type EventPlugin struct {
+	Impl Event
+}
+
+func (p *EventPlugin) Server(*plugin.MuxBroker) (interface{}, error) {
+	fmt.Println("EventPlugin.Server called")
+	return &eventServer{Impl: p.Impl}, nil
+}
+
+func (p *EventPlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
+	fmt.Println("EventPlugin.Client called")
+	return &EventClient{client: c}, nil
+}
+
+type EventClient struct {
 	client *rpc.Client
 }
 
-func (er *EventRPC) Register(triggers []string, handler func(string, ...interface{}) error) {
+func (er *EventClient) Register(triggers []string, handler func(string, ...interface{}) error) {
 	err := er.client.Call("Plugin.Register", new(interface{}), nil)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Register called from gochan main")
 }
-func (er *EventRPC) Trigger(trigger string, data ...interface{}) (bool, error, bool) {
+func (er *EventClient) Trigger(trigger string, data ...interface{}) (bool, error, bool) {
 	err := er.client.Call("Plugin.Trigger", new(interface{}), nil)
 	if err != nil {
 		panic(err)
@@ -27,29 +41,16 @@ func (er *EventRPC) Trigger(trigger string, data ...interface{}) (bool, error, b
 	return false, nil, false
 }
 
-type EventRPCServer struct {
-	Impl EventsInterface
+type eventServer struct {
+	Impl Event
 }
 
-func (er *EventRPCServer) Register(args interface{}, resp *string) error {
+func (er *eventServer) Register(args interface{}, resp *string) error {
 	fmt.Println("register args:", args)
 	return nil
 }
-func (er *EventRPCServer) Trigger(args interface{}, resp *string) error {
-	fmt.Println("trigger args:", args)
+func (er *eventServer) Trigger(args interface{}, resp *EventTriggerResult) error {
+	var res EventTriggerResult
+	res.Handled, res.Error, res.Recovered = er.Impl.Trigger("rpc-events")
 	return nil
-}
-
-type EventPlugin struct {
-	Impl EventsInterface
-}
-
-func (p *EventPlugin) Server(*plugin.MuxBroker) (interface{}, error) {
-	fmt.Println("EventPlugin.Server called")
-	return &EventRPCServer{Impl: p.Impl}, nil
-}
-
-func (p *EventPlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
-	fmt.Println("EventPlugin.Client called")
-	return &EventRPC{client: c}, nil
 }

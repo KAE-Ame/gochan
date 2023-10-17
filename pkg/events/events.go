@@ -16,9 +16,15 @@ var (
 	InvalidArgumentErrorStr = "invalid argument(s) passed to event %q"
 )
 
-type EventsInterface interface {
+type Event interface {
 	Register([]string, func(string, ...interface{}))
 	Trigger(string, ...interface{}) (bool, error, bool)
+}
+
+type EventTriggerResult struct {
+	Handled   bool
+	Error     error
+	Recovered bool
 }
 
 type EventHandler func(string, ...interface{}) error

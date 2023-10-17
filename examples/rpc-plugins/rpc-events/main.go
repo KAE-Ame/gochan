@@ -16,7 +16,7 @@ func (ep EventsPlugin) Register(triggers []string, handler func(string, ...inter
 }
 
 func (ep EventsPlugin) Trigger(trigger string, data ...interface{}) (bool, error, bool) {
-	fmt.Println("Trigger called from plugin")
+	fmt.Println("Trigger called from plugin, data:", data)
 	return false, nil, false
 }
 
@@ -33,4 +33,5 @@ func main() {
 		Logger:          gcplugin.PluginLogger(),
 		Plugins:         pluginMap,
 	})
+	gcplugin.PluginLogger().Info("Starting pluginServe()")
 }
