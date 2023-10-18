@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/gochan-org/gochan/pkg/events"
-	"github.com/gochan-org/gochan/pkg/gcplugin"
+	"github.com/gochan-org/gochan/pkg/gcplugin/rpcplugin"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 )
@@ -14,7 +14,7 @@ type EventsPlugin struct {
 	logger hclog.Logger
 }
 
-func (ep EventsPlugin) Register(triggers []string /* , handler func(string, ...interface{}) */) {
+func (ep EventsPlugin) Register(triggers []string) {
 	ep.logger.Info("Register called from plugin for " + fmt.Sprint(triggers))
 }
 
@@ -51,15 +51,15 @@ func main() {
 	eventplug.logger.Debug("Hello from rpc-events plugin!")
 
 	var plugins = plugin.PluginSet{
-		"eventplug": &events.EventPlugin{
+		"eventplugin": &events.EventPlugin{
 			Impl: eventplug,
 		},
 	}
 
-	gcplugin.SetupRPCPluginLogger("rpc-events")
+	rpcplugin.SetupRPCPluginLogger("rpc-events")
 
 	plugin.Serve(&plugin.ServeConfig{
-		HandshakeConfig: gcplugin.RPCHandshakeConfig,
+		HandshakeConfig: rpcplugin.RPCHandshakeConfig,
 		Logger:          eventplug.logger,
 		Plugins:         plugins,
 	})

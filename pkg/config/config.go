@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Eggbertx/durationutil"
+	"github.com/gochan-org/gochan/pkg/gcplugin/rpcplugin"
 	"github.com/gochan-org/gochan/pkg/gcutil"
 )
 
@@ -121,13 +122,9 @@ func (gcfg *GochanConfig) Write() error {
 }
 
 type RPCConfig struct {
-	RPCPlugins []string
+	RPCPlugins []rpcplugin.RPCPluginInfo
 
 	AutoMTLS bool
-	// KeyFile is required if AutoMTLS is true
-	KeyFile string
-	// CertFile is required if AutoMTLS is true
-	CertFile string
 }
 
 /*

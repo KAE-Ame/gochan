@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	registeredRPCEvents     map[string][]string
 	registeredEvents        map[string][]EventHandler
 	testingMode             bool
 	ErrRecovered            = errors.New("recovered from a panic in event handler")
