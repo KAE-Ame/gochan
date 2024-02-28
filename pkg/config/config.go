@@ -137,27 +137,46 @@ the server is running could have site breaking consequences. It should only be c
 file and restarting the server.
 */
 type SystemCriticalConfig struct {
-	ListenIP       string
-	Port           int
-	UseFastCGI     bool
-	DocumentRoot   string
-	TemplateDir    string
-	LogDir         string
-	Plugins        []string
+	// The IP address that the server will listen on
+	ListenIP string
+	// The server port that the server will listen on
+	Port int
+	// If true, gochan will act as a FastCGI server, to be proxied by another server like nginx. If false, it uses
+	// HTTP
+	UseFastCGI bool
+	// The location in the local filesystem where gochan will serve files from
+	DocumentRoot string
+	// The location in the local filesystem where gochan will get templates from
+	TemplateDir string
+	// The location in the local filesystem where gochan will write logs to
+	LogDir string
+	// A list of paths to plugins (must have .lua or .so extension)
+	Plugins []string
+	// A string->any map of options that can be used by plugins
 	PluginSettings map[string]any
 
-	SiteHeaderURL string
-	WebRoot       string
-	SiteDomain    string
+	// The path root in site URLs
+	// default: /
+	WebRoot    string
+	SiteDomain string
 
-	DBtype     string
-	DBhost     string
-	DBname     string
+	// The type of SQL database that gochan will connect to (must be "mysql", "postgres", or "sqlite3")
+	DBtype string
+	// The host (domain or ip and port, separated by a colon) of the database server
+	DBhost string
+	// The name of the database
+	DBname string
+	// The username used to log into the database
 	DBusername string
+	// The password used to log into the database
 	DBpassword string
-	DBprefix   string
+	// If set, tables in the database will use this as a prefix
+	DBprefix string
 
-	Verbose    bool `json:"DebugMode"`
+	// If set, logs (not including general access) will be printed to the console
+	Verbose bool `json:"DebugMode"`
+
+	// The seed used to generate numbers. If unset, gochan will generate its own
 	RandomSeed string
 	Version    *GochanVersion `json:"-"`
 	TimeZone   int            `json:"-"`
@@ -166,7 +185,10 @@ type SystemCriticalConfig struct {
 // SiteConfig contains information about the site/community, e.g. the name of the site, the slogan (if set),
 // the first page to look for if a directory is requested, etc
 type SiteConfig struct {
-	FirstPage       []string
+	// A list of pages gochan will look for if the request URL ends in /
+	FirstPage []string
+	// If set, when gochan creates a file, it will attempt to set the file's owner as this user. Otherwise,
+	// the file will be owned by the user running gochan
 	Username        string
 	CookieMaxAge    string
 	Lockdown        bool
@@ -233,10 +255,13 @@ type BoardConfig struct {
 	Cooldowns              BoardCooldowns
 	RenderURLsAsLinks      bool
 	ThreadsPerPage         int
-	EnableGeoIP            bool
-	EnableNoFlag           bool
-	CustomFlags            []geoip.Country
-	isGlobal               bool
+	// If true,
+	EnableGeoIP bool
+	// If true, users can select an option for their post to not use a flag
+	EnableNoFlag bool
+	// A list of custom flags and flag names that users can select when they make a post.
+	CustomFlags []geoip.Country
+	isGlobal    bool
 }
 
 // CheckCustomFlag returns true if the given flag and name are configured for
@@ -263,6 +288,7 @@ type Style struct {
 }
 
 type UploadConfig struct {
+	// If true, uploaded file checksums are required to be unique
 	RejectDuplicateImages bool
 	ThumbWidth            int
 	ThumbHeight           int
@@ -311,19 +337,29 @@ type PostConfig struct {
 	MaxLineLength int
 	ReservedTrips []string
 
-	ThreadsPerPage           int
-	RepliesOnBoardPage       int
+	// The number of threads to show on each board page
+	// default: 20
+	ThreadsPerPage int
+	// The number of replies to show in a thread on the board page
+	// default: 3
+	RepliesOnBoardPage int
+	// The number of replies to show in a stickied thread on the board page
+	// default: 1
 	StickyRepliesOnBoardPage int
-	NewThreadsRequireUpload  bool
+	// If true, a user will need to upload a file in order to create a new thread
+	// default: false
+	NewThreadsRequireUpload bool
 
-	BanColors        []string
-	BanMessage       string
-	EmbedWidth       int
-	EmbedHeight      int
-	EnableEmbeds     bool
+	BanColors    []string
+	BanMessage   string
+	EmbedWidth   int
+	EmbedHeight  int
+	EnableEmbeds bool
+	// default: false
 	ImagesOpenNewTab bool
 	NewTabOnOutlinks bool
-	DisableBBcode    bool
+	// If true, BBcode in messages will not be rendered into HTML
+	DisableBBcode bool
 }
 
 func WriteConfig() error {

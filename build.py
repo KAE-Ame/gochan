@@ -55,6 +55,8 @@ gochan_bin = ""
 gochan_exe = ""
 migration_bin = ""
 migration_exe = ""
+doc_bin = ""
+doc_exe = ""
 
 
 def pathinfo(loc):
@@ -183,6 +185,8 @@ def set_vars(goos=""):
 	global gochan_exe
 	global migration_bin
 	global migration_exe
+	global doc_bin
+	global doc_exe
 
 	if goos != "":
 		os.environ["GOOS"] = goos
@@ -197,12 +201,14 @@ def set_vars(goos=""):
 		gcos_name = "macos"
 
 	gochan_bin = "gochan"
-	gochan_exe = "gochan" + exe
+	gochan_exe = gochan_bin + exe
 	migration_bin = "gochan-migration"
-	migration_exe = "gochan-migration" + exe
+	migration_exe = migration_bin + exe
+	doc_bin = "gochan-doc"
+	doc_exe = doc_bin + exe
 
 
-def build(debugging=False, plugin_path=""):
+def build(debugging=False, plugin_path="", doc=False):
 	"""Build the gochan executable for the current GOOS"""
 	pwd = os.getcwd()
 	trimpath = "-trimpath=" + pwd
@@ -258,6 +264,15 @@ def build(debugging=False, plugin_path=""):
 		sys.exit(1)
 	print("Built gochan-migration successfully")
 
+	if not doc:
+		return
+	status = run_cmd(
+		build_cmd + " -o " + doc_exe + " ./cmd/gochan-doc",
+		realtime=True, print_command=True)[1]
+	if status != 0:
+		print("Failed building gochan-doc, see command output for details")
+		sys.exit(1)
+	print("Built gochan-doc successfully")
 
 def clean():
 	print("Cleaning up")
@@ -494,10 +509,13 @@ if __name__ == "__main__":
 		parser.add_argument("--debug",
 			help="build gochan and gochan-migrate with debugging symbols",
 			action="store_true")
+		parser.add_argument("--doc",
+			help="build gochan-doc, a utility for generating gochan documentation",
+			action="store_true")
 		parser.add_argument("--plugin",
 		      help="if used, builds the gochan-compatible Go plugin at the specified directory")
 		args = parser.parse_args()
-		build(args.debug, args.plugin)
+		build(args.debug, args.plugin, args.doc)
 	elif action == "clean":
 		clean()
 		sys.exit(0)
